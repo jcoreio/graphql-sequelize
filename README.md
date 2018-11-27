@@ -1,6 +1,6 @@
 # @jcoreio/graphql-sequelize
 
-[![Build Status](https://travis-ci.org/jcoreio/graphql-sequelize.svg?branch=master)](https://travis-ci.org/mickhansen/graphql-sequelize)
+[![Build Status](https://travis-ci.org/jcoreio/graphql-sequelize.svg?branch=master)](https://travis-ci.org/jcoreio/graphql-sequelize)
 [![Coverage](https://codecov.io/gh/jcoreio/graphql-sequelize/branch/master/graph/badge.svg)](https://codecov.io/gh/jcoreio/graphql-sequelize)
 
 This is my fork of `graphql-sequelize` that implements the connections
