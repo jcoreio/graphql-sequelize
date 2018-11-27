@@ -1,13 +1,13 @@
 {
-  "name": "graphql-sequelize",
-  "version": "9.0.1",
+  "name": "@jcoreio/graphql-sequelize",
+  "version": "0.0.0-development",
   "description": "GraphQL & Relay for MySQL & Postgres via Sequelize",
   "main": "lib/index.js",
   "options": {
     "mocha": "--require scripts/mocha-bootload"
   },
   "scripts": {
-    "prepublish": "npm run check && npm run build",
+    "prepublishOnly": "npm run check && npm run build",
     "check": "npm run lint && npm run test:unit",
     "lint": "eslint src",
     "build": "rm -rf lib/* && babel src --ignore test --out-dir lib",
@@ -18,11 +18,13 @@
     "test:docker": "DIALECT=${DIALECT:=postgres} docker-compose run dev /bin/sh -c \"npm run test:integration\"",
     "test:integration": "mocha $npm_package_options_mocha test/integration/*.test.js test/integration/**/*.test.js",
     "psql": "docker run -it --link graphqlsequelize_postgres_1:postgres --rm postgres:9.4 sh -c 'PGPASSWORD=graphql_sequelize_test exec psql -h \"$POSTGRES_PORT_5432_TCP_ADDR\" -p \"$POSTGRES_PORT_5432_TCP_PORT\" -U graphql_sequelize_test'",
-    "cover": "babel-node node_modules/.bin/isparta cover _mocha -- $npm_package_options_mocha test/**/**/*.test.js test/**/*.test.js"
+    "cover": "babel-node node_modules/.bin/isparta cover _mocha -- $npm_package_options_mocha test/**/**/*.test.js test/**/*.test.js",
+    "semantic-release": "semantic-release",
+    "travis-deploy-once": "travis-deploy-once"
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mickhansen/graphql-sequelize.git"
+    "url": "https://github.com/jcoreio/graphql-sequelize.git"
   },
   "keywords": [
     "graphql",
@@ -32,14 +34,14 @@
   "contributors": [
     {
       "name": "graphql-sequelize community",
-      "url": "https://github.com/mickhansen/graphql-sequelize/graphs/contributors"
+      "url": "https://github.com/jcoreio/graphql-sequelize/graphs/contributors"
     }
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mickhansen/graphql-sequelize/issues"
+    "url": "https://github.com/jcoreio/graphql-sequelize/issues"
   },
-  "homepage": "https://github.com/mickhansen/graphql-sequelize",
+  "homepage": "https://github.com/jcoreio/graphql-sequelize",
   "dependencies": {
     "bluebird": "^3.4.0",
     "invariant": "2.2.1",
@@ -68,10 +70,12 @@
     "mysql": "^2.11.1",
     "pg": "^5.0.0",
     "pg-hstore": "^2.3.2",
+    "semantic-release": "^15.12.2",
     "sequelize": "^3.24.6",
     "sinon": "^1.15.4",
     "sinon-as-promised": "^4.0.0",
     "sinon-chai": "^2.8.0",
-    "sqlite3": "^4.0.0"
+    "sqlite3": "^4.0.0",
+    "travis-deploy-once": "^5.0.9"
   }
 }

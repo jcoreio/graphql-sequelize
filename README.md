@@ -1,11 +1,12 @@
-# graphql-sequelize
+# @jcoreio/graphql-sequelize
 
-[![NPM](https://img.shields.io/npm/v/graphql-sequelize.svg)](https://www.npmjs.com/package/graphql-sequelize)
-[![Build Status](https://travis-ci.org/mickhansen/graphql-sequelize.svg?branch=master)](https://travis-ci.org/mickhansen/graphql-sequelize)
-[![Slack](http://sequelize-slack.herokuapp.com/badge.svg)](http://sequelize-slack.herokuapp.com)
-[![Coverage](https://codecov.io/gh/mickhansen/graphql-sequelize/branch/master/graph/badge.svg)](https://codecov.io/gh/mickhansen/graphql-sequelize)
+[![Build Status](https://travis-ci.org/jcoreio/graphql-sequelize.svg?branch=master)](https://travis-ci.org/mickhansen/graphql-sequelize)
+[![Coverage](https://codecov.io/gh/jcoreio/graphql-sequelize/branch/master/graph/badge.svg)](https://codecov.io/gh/jcoreio/graphql-sequelize)
 
-Should be used with [dataloader-sequelize](https://github.com/mickhansen/dataloader-sequelize) to avoid N+1 queries
+This is my fork of `graphql-sequelize` that implements the connections
+specification correctly and more efficiently
+(based upon https://github.com/mickhansen/graphql-sequelize/pull/607, which is
+not yet merged).
 
 - [Installation](#installation)
 - [Resolve helpers](#resolve-helpers)
@@ -14,20 +15,20 @@ Should be used with [dataloader-sequelize](https://github.com/mickhansen/dataloa
 
 ## Installation
 
-`$ npm install --save graphql-sequelize`
+`$ npm install --save @jcoreio/graphql-sequelize`
 
-graphql-sequelize assumes you have graphql and sequelize installed.
+@jcoreio/graphql-sequelize assumes you have graphql and sequelize installed.
 
 ## Resolve helpers
 
 ```js
-import { resolver } from "graphql-sequelize";
+import { resolver } from "@jcoreio/graphql-sequelize";
 
 resolver(SequelizeModel[, options]);
 ```
 
 A helper for resolving graphql queries targeted at Sequelize models or associations.
-Please take a look at [the tests](https://github.com/mickhansen/graphql-sequelize/blob/master/test/integration/resolver.test.js) to best get an idea of implementation.
+Please take a look at [the tests](https://github.com/jcoreio/graphql-sequelize/blob/master/test/integration/resolver.test.js) to best get an idea of implementation.
 
 ### Features
 
@@ -95,7 +96,7 @@ about those is available in their [resolver docs](http://graphql.org/learn/execu
 ### Examples
 
 ```js
-import {resolver} from 'graphql-sequelize';
+import {resolver} from '@jcoreio/graphql-sequelize';
 
 let User = sequelize.define('user', {
   name: Sequelize.STRING
@@ -238,7 +239,7 @@ var Model = sequelize.define('User', {
   }
 });
 
-import {attributeFields} from 'graphql-sequelize';
+import {attributeFields} from '@jcoreio/graphql-sequelize';
 
 attributeFields(Model, {
   // ... options
@@ -293,7 +294,7 @@ var Model = sequelize.define('User', {
   }
 });
 
-import {attributeFields,typeMapper} from 'graphql-sequelize';
+import {attributeFields,typeMapper} from '@jcoreio/graphql-sequelize';
 typeMapper.mapType((type) => {
    //map bools as strings
    if (type instanceof Sequelize.BOOLEAN) {
@@ -510,7 +511,7 @@ Which when added to args will let the resolver automatically support limit and o
 Should be used with fields of type `GraphQLList`.
 
 ```js
-import {defaultListArgs} from 'graphql-sequelize'
+import {defaultListArgs} from '@jcoreio/graphql-sequelize'
 
 args: _.assign(defaultListArgs(), {
   // ... additional args

@@ -26,7 +26,14 @@ before_script:
 
 script:
   - "npm run lint && npm run cover"
+
+after_success:
   - "bash <(curl -s https://codecov.io/bash) -f coverage/lcov.info"
+  - npm run travis-deploy-once "npm run semantic-release"
 
 notifications:
   email: false
+
+branches:
+  except:
+    - /^v\d+\.\d+\.\d+$/
