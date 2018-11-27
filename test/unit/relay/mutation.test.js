@@ -92,7 +92,7 @@ describe('relay', function () {
             newTaskEdge: {
               type: this.viewerTaskConnection.edgeType,
               resolve: (payload, args, context, info) => this.viewerTaskConnection.resolveEdge(
-                payload.task, -1, '', {...info, orderAttributes: [this.Task.primaryKeyAttribute]}, payload
+                payload.task, -1, '', args, {...info, orderAttributes: [this.Task.primaryKeyAttribute]}, payload
               )
             }
           }),
