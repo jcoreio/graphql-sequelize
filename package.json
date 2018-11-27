@@ -22,6 +22,9 @@
     "semantic-release": "semantic-release",
     "travis-deploy-once": "travis-deploy-once"
   },
+  "release": {
+    "branch": "jcoreio"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/jcoreio/graphql-sequelize.git"
