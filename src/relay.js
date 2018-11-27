@@ -236,7 +236,8 @@ export function createConnectionResolver({
   after,
   where,
   orderBy: orderByEnum,
-  ignoreArgs
+  ignoreArgs,
+  resolver: baseResolver = require('./resolver'),
 }) {
   before = before || ((options) => options);
   after = after || ((result) => result);
@@ -279,7 +280,7 @@ export function createConnectionResolver({
     };
   };
 
-  const $resolver = require('./resolver')(targetMaybeThunk, {
+  const $resolver = baseResolver(targetMaybeThunk, {
     handleConnection: false,
     list: true,
     before: function (options, args, context, info) {
@@ -469,7 +470,8 @@ export function createConnection({
   after,
   connectionFields,
   edgeFields,
-  where
+  where,
+  resolver,
 }) {
   const {
     edgeType,
@@ -500,7 +502,8 @@ export function createConnection({
     before,
     after,
     where,
-    ignoreArgs: $connectionArgs
+    ignoreArgs: $connectionArgs,
+    resolver
   });
 
   return {
