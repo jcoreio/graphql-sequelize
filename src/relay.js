@@ -238,6 +238,7 @@ export function createConnectionResolver({
   orderBy: orderByEnum,
   ignoreArgs,
   resolver: baseResolver = require('./resolver'),
+  resolveNodes
 }) {
   before = before || ((options) => options);
   after = after || ((result) => result);
@@ -280,7 +281,7 @@ export function createConnectionResolver({
     };
   };
 
-  const $resolver = baseResolver(targetMaybeThunk, {
+  if (!resolveNodes) resolveNodes = baseResolver(targetMaybeThunk, {
     handleConnection: false,
     list: true,
     before: function (options, args, context, info) {
@@ -384,7 +385,7 @@ export function createConnectionResolver({
         offset, // may be null
       },
     };
-    const nodesPromise = $resolver(source, args, context, extendedInfo);
+    const nodesPromise = resolveNodes(source, args, context, extendedInfo);
 
     let hasNextPage = false;
     let hasPreviousPage = false;
@@ -400,7 +401,7 @@ export function createConnectionResolver({
         order,
         inclusive: true,
       }));
-      const otherNodes = await $resolver(source, args, context, {
+      const otherNodes = await resolveNodes(source, args, context, {
         ...info,
         order,
         orderAttributes,
