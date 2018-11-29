@@ -470,6 +470,8 @@ export function createConnection({
   orderBy: orderByEnum,
   before,
   after,
+  afterNodes,
+  resolveNodes,
   connectionFields,
   edgeFields,
   where,
@@ -503,6 +505,8 @@ export function createConnection({
     target: targetMaybeThunk,
     before,
     after,
+    afterNodes,
+    resolveNodes,
     where,
     ignoreArgs: $connectionArgs,
     resolver
