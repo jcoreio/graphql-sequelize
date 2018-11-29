@@ -238,6 +238,7 @@ export function createConnectionResolver({
   orderBy: orderByEnum,
   ignoreArgs,
   resolver: baseResolver = require('./resolver'),
+  afterNodes,
   resolveNodes
 }) {
   before = before || ((options) => options);
@@ -291,7 +292,7 @@ export function createConnectionResolver({
         attributes: _.uniq([...info.orderAttributes, ...options.attributes]),
       }, args, context, info);
     },
-    after,
+    after: afterNodes,
   });
 
   const resolver = async (source, args, context, info) => {
