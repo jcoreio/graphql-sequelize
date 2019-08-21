@@ -144,7 +144,7 @@ function reverseOrder(order) {
  * @param  {String[]} orderAttributes  the attributes pertaining in ordering
  * @return {String}                   The Base64 encoded cursor string
  */
-function toCursor(node, info) {
+function defaultToCursor(node, info) {
   return base64(JSON.stringify(info.orderAttributes.map(attr => node.get(attr))));
 }
 
@@ -166,7 +166,7 @@ function toOffsetCursor(node, index) {
  * @param  {String} cursor Base64 encoded cursor
  * @return {any[]}         array containing values of attributes pertaining to ordering
  */
-function fromCursor(cursor) {
+function defaultFromCursor(cursor) {
   return JSON.parse(unbase64(cursor));
 }
 
@@ -186,49 +186,6 @@ function tupleComparison(model, attributes, inequality, values) {
   return sequelize.literal(`(${attributesStr}) ${inequality} (${valuesStr})`);
 }
 
-function getWindow({model, cursor, order, inclusive}) {
-  const values = fromCursor(cursor);
-  order.forEach(([orderAttribute], index) => {
-    if (model.rawAttributes[orderAttribute].type instanceof model.sequelize.constructor.DATE) {
-      values[index] = new Date(values[index]);
-    }
-  });
-
-  const {sequelize} = model;
-  const allAscending = _.every(order, item => item[1].indexOf('ASC') >= 0);
-  const allDescending = _.every(order, item => item[1].indexOf('DESC') >= 0);
-
-  if ((allAscending || allDescending) && dialectsThatSupportTupleComparison[sequelize.getDialect()]) {
-    let inequality = allAscending ? '>' : '<';
-    if (inclusive) inequality += '=';
-    const attributes = order.map(([attribute]) => attribute);
-    return tupleComparison(model, attributes, inequality, values);
-  }
-
-  // given ORDER BY A ASC, B DESC, C ASC, the following code would create this logic:
-  // A > cursorValues[A] OR
-  // (A = cursorValues[A] AND (
-  //   B < cursorValues[B] OR (
-  //     B = cursorValues[B] AND C > cursorValues[C]
-  //   )
-  // )
-
-  function buildInequality(index) {
-    const [attr, direction] = order[index];
-    const value = values[index];
-    let inequality = direction.indexOf('ASC') >= 0 ? '$gt' : '$lt';
-    if (index === order.length - 1) {
-      if (inclusive) inequality += 'e';
-      return {[attr]: {[inequality]: value}};
-    }
-    return {$or: [
-      {[attr]: {[inequality]: value}},
-      {[attr]: value, ...buildInequality(index + 1)},
-    ]};
-  }
-
-  return buildInequality(0);
-}
 
 export function createConnectionResolver({
   target: targetMaybeThunk,
@@ -239,7 +196,9 @@ export function createConnectionResolver({
   ignoreArgs,
   resolver: baseResolver = require('./resolver'),
   afterNodes,
-  resolveNodes
+  resolveNodes,
+  toCursor = defaultToCursor,
+  fromCursor = defaultFromCursor,
 }) {
   before = before || ((options) => options);
   after = after || ((result) => result);
@@ -256,6 +215,50 @@ export function createConnectionResolver({
 
     return result;
   };
+
+  function getWindow({model, cursor, order, inclusive}) {
+    const values = fromCursor(cursor);
+    order.forEach(([orderAttribute], index) => {
+      if (model.rawAttributes[orderAttribute].type instanceof model.sequelize.constructor.DATE) {
+        values[index] = new Date(values[index]);
+      }
+    });
+
+    const {sequelize} = model;
+    const allAscending = _.every(order, item => item[1].indexOf('ASC') >= 0);
+    const allDescending = _.every(order, item => item[1].indexOf('DESC') >= 0);
+
+    if ((allAscending || allDescending) && dialectsThatSupportTupleComparison[sequelize.getDialect()]) {
+      let inequality = allAscending ? '>' : '<';
+      if (inclusive) inequality += '=';
+      const attributes = order.map(([attribute]) => attribute);
+      return tupleComparison(model, attributes, inequality, values);
+    }
+
+    // given ORDER BY A ASC, B DESC, C ASC, the following code would create this logic:
+    // A > cursorValues[A] OR
+    // (A = cursorValues[A] AND (
+    //   B < cursorValues[B] OR (
+    //     B = cursorValues[B] AND C > cursorValues[C]
+    //   )
+    // )
+
+    function buildInequality(index) {
+      const [attr, direction] = order[index];
+      const value = values[index];
+      let inequality = direction.indexOf('ASC') >= 0 ? '$gt' : '$lt';
+      if (index === order.length - 1) {
+        if (inclusive) inequality += 'e';
+        return {[attr]: {[inequality]: value}};
+      }
+      return {$or: [
+        {[attr]: {[inequality]: value}},
+        {[attr]: value, ...buildInequality(index + 1)},
+      ]};
+    }
+
+    return buildInequality(0);
+  }
 
   const resolveEdge = function (node, index, queriedCursor, sourceArgs = {}, info, source) {
     if (info.mustUseOffset) {

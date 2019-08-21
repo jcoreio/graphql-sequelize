@@ -212,3 +212,36 @@ const userType = new GraphQLObjectType({
     }
   }
 });
+
+### Custom Cursors
+
+Although the Relay Cursor Connections Specification recommends making cursors
+opaque strings, I've found that for certain complex use cases, like continually
+adding/removing edges from a subscription, are much easier to do with non-opaque
+cursors.
+
+For that reason, `createConnection` allows you to override the `toCursor`
+and `fromCursor` functions.
+
+The default implementations are:
+
+```js
+/**
+ * Creates a cursor given a node returned from the Database
+ * @param  {Object}   node            sequelize model instance
+ * @param  {String[]} orderAttributes  the attributes pertaining in ordering
+ * @return {String}                   The Base64 encoded cursor string
+ */
+function defaultToCursor(node, info) {
+  return base64(JSON.stringify(info.orderAttributes.map(attr => node.get(attr))));
+}
+
+/**
+ * Decode a cursor into its component parts
+ * @param  {String} cursor Base64 encoded cursor
+ * @return {any[]}         array containing values of attributes pertaining to ordering
+ */
+function defaultFromCursor(cursor) {
+  return JSON.parse(unbase64(cursor));
+}
+```
