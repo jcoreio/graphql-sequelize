@@ -1265,50 +1265,6 @@ describe('relay', function () {
       expect(result.data.user.tasks.pageInfo.hasPreviousPage).to.equal(false);
     });
 
-    it('should support fetching the next element although it has the same orderValue', async function () {
-      let firstResult = await graphql(this.schema, `
-        {
-          user(id: ${this.userA.id}) {
-            tasks(first: 3, orderBy: NAME) {
-              edges {
-                cursor
-                node {
-                  id
-                  name
-                }
-              }
-              pageInfo {
-                endCursor
-              }
-            }
-          }
-        }
-      `, null, {});
-
-      let secondResult = await graphql(this.schema, `
-        {
-          user(id: ${this.userA.id}) {
-            tasks(first: 3, after: "${firstResult.data.user.tasks.pageInfo.endCursor}", orderBy: NAME) {
-              edges {
-                cursor
-                node {
-                  id
-                  name
-                }
-              }
-              pageInfo {
-                endCursor
-              }
-            }
-          }
-        }
-      `, null, {});
-
-      expect(firstResult.data.user.tasks.edges[2].node.name).to.equal('ABC');
-      expect(firstResult.data.user.tasks.edges[2].node.name).to.equal(secondResult.data.user.tasks.edges[0].node.name);
-    });
-
-
     it('should support prefetching two nested connections', async function () {
       let sqlSpy = sinon.spy();
 

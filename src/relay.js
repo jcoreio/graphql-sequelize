@@ -115,16 +115,18 @@ function orderByAttribute(orderAttr, {source, args, context, info}) {
 }
 
 function getOrder(orderBy, options) {
-  const {model} = options;
   const result = orderBy.map(([orderAttr, orderDirection]) => [
     orderByAttribute(orderAttr, options),
     orderDirection,
   ]);
-  model.primaryKeyAttributes.forEach(primaryKeyAttribute => {
-    if (result.findIndex(([attr]) => attr === primaryKeyAttribute) < 0) {
-      result.push([primaryKeyAttribute, 'ASC']);
-    }
-  });
+  if (!result.length) {
+    const {model} = options;
+    model.primaryKeyAttributes.forEach(primaryKeyAttribute => {
+      if (result.findIndex(([attr]) => attr === primaryKeyAttribute) < 0) {
+        result.push([primaryKeyAttribute, 'ASC']);
+      }
+    });
+  }
   return result;
 }
 
