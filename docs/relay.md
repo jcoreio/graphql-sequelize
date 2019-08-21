@@ -231,7 +231,6 @@ The default implementations are:
  * @param  {Object}   node                  sequelize model instance
  * @param  {Object}   info                  the GraphQLResolveInfo with additional properties
  * @param  {String[]} info.orderAttributes  the attributes pertaining in ordering
- * @param  {String[]} info.options          the sequelize FindOptions
  * @return {String}                         The Base64 encoded cursor string
  */
 export function defaultToCursor(node, info) {
@@ -243,7 +242,6 @@ export function defaultToCursor(node, info) {
  * @param  {String}   cursor Base64 encoded cursor
  * @param  {Object}   info                  the GraphQLResolveInfo with additional properties
  * @param  {String[]} info.orderAttributes  the attributes pertaining in ordering
- * @param  {String[]} info.options          the sequelize FindOptions
  * @return {any[]}    array containing values of attributes pertaining to ordering
  */
 export function defaultFromCursor(cursor, info) { // eslint-disable-line no-unused-vars
