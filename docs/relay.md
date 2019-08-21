@@ -228,20 +228,25 @@ The default implementations are:
 ```js
 /**
  * Creates a cursor given a node returned from the Database
- * @param  {Object}   node            sequelize model instance
- * @param  {String[]} orderAttributes  the attributes pertaining in ordering
- * @return {String}                   The Base64 encoded cursor string
+ * @param  {Object}   node                  sequelize model instance
+ * @param  {Object}   info                  the GraphQLResolveInfo with additional properties
+ * @param  {String[]} info.orderAttributes  the attributes pertaining in ordering
+ * @param  {String[]} info.options          the sequelize FindOptions
+ * @return {String}                         The Base64 encoded cursor string
  */
-function defaultToCursor(node, info) {
+export function defaultToCursor(node, info) {
   return base64(JSON.stringify(info.orderAttributes.map(attr => node.get(attr))));
 }
 
 /**
  * Decode a cursor into its component parts
- * @param  {String} cursor Base64 encoded cursor
- * @return {any[]}         array containing values of attributes pertaining to ordering
+ * @param  {String}   cursor Base64 encoded cursor
+ * @param  {Object}   info                  the GraphQLResolveInfo with additional properties
+ * @param  {String[]} info.orderAttributes  the attributes pertaining in ordering
+ * @param  {String[]} info.options          the sequelize FindOptions
+ * @return {any[]}    array containing values of attributes pertaining to ordering
  */
-function defaultFromCursor(cursor) {
+export function defaultFromCursor(cursor, info) { // eslint-disable-line no-unused-vars
   return JSON.parse(unbase64(cursor));
 }
 ```
