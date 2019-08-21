@@ -78,7 +78,7 @@
     "sinon": "^1.15.4",
     "sinon-as-promised": "^4.0.0",
     "sinon-chai": "^2.8.0",
-    "sqlite3": "^4.0.0",
+    "sqlite3": "^4.1.0",
     "travis-deploy-once": "^5.0.9"
   }
 }
