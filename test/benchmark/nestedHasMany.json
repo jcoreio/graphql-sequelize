@@ -1,0 +1,3 @@
+{
+  "query": "{ users(limit: 250) { tasks(completed: true) { edges { node { name, subTasks { edges { node { name } } } } } } } }"
+}

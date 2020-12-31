@@ -1,0 +1,32 @@
+postgres:
+  image: postgres:9.4
+  ports:
+    - '5432:5432'
+  environment:
+    POSTGRES_USER: gql_sequelize
+    POSTGRES_PASSWORD: gql_sequelize
+
+mysql:
+  image: mysql:5.6
+  ports:
+    - '3306:3306'
+  environment:
+    MYSQL_USER: gql_sequelize
+    MYSQL_PASSWORD: gql_sequelize
+    MYSQL_DATABASE: gql_sequelize
+    MYSQL_ALLOW_EMPTY_PASSWORD: 1
+
+benchmark_server:
+  build: .
+  command: [node, test/benchmark.js]
+  ports:
+    - '4001:4001'
+  links:
+    - postgres
+  volumes:
+    - .:/src/graphql-sequelize
+  environment:
+    DIALECT: postgres
+    DB_DATABASE: gql_sequelize
+    DB_USER: gql_sequelize
+    DB_PASSWORD: gql_sequelize

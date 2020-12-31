@@ -1,0 +1,3 @@
+{
+  "query": "{ users(limit: 25) { tasks { edges { node { name } } }, subordinates { edges { node { name } } } } }"
+}
