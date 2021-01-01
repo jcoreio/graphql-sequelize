@@ -105,7 +105,7 @@
     "eslint": "^7.15.0",
     "eslint-config-prettier": "^7.0.0",
     "eslint-plugin-flowtype": "^5.2.0",
-    "flow-bin": "^0.140.0",
+    "flow-bin": "^0.141.0",
     "flow-copy-source": "https://github.com/jedwards1211/flow-copy-source#no-watch",
     "graphql": "^15.0.0",
     "graphql-relay": "^0.6.0",
