@@ -135,6 +135,6 @@
   "dependencies": {
     "@babel/runtime": "^7.12.5",
     "invariant": "^2.2.4",
-    "lodash": "^4.17.20"
+    "lodash": "^4.17.21"
   }
 }
