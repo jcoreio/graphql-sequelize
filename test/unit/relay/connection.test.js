@@ -89,7 +89,7 @@ describe('relay', function () {
     });
 
     it('passes context, root and info to before', async function () {
-      const result = await graphql(this.schema, `
+      const result = await graphql({schema: this.schema, source: `
         query {
           viewer {
             tasks {
@@ -101,9 +101,9 @@ describe('relay', function () {
             }
           }
         }
-      `, null, {
+      `, contextValue: {
         viewer: this.viewer
-      });
+      }});
 
       if (result.errors) throw new Error(result.errors[0]);
 

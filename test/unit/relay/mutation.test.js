@@ -154,7 +154,7 @@ describe('relay', function () {
             userId: this.viewer.get('id')
           }));
 
-          let result = await graphql(this.schema, `
+          let result = await graphql({schema: this.schema, source: `
             mutation {
               addTask(input: {title: "${title}", clientMutationId: "${Math.random().toString()}"}) {
                 task {
@@ -170,9 +170,9 @@ describe('relay', function () {
                 }
               }
             }
-          `, null, {
+          `, rootValue: null, contextValue: {
             viewer: this.viewer
-          });
+          }});
 
           if (result.errors) throw new Error(result.errors[0].stack);
 
