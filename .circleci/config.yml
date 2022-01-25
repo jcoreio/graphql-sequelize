@@ -4,6 +4,7 @@ jobs:
     docker:
       - image: circleci/node:14
         environment: 
+          DIALECT: postgres
           POSTGRES_ENV_POSTGRES_DATABASE: postgres
       - image: circleci/postgres:10-alpine-ram
         environment:
