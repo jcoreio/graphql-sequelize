@@ -28,8 +28,8 @@ export function createSequelize(options = {}) {
     },
     dialect === 'postgres' && env.CI && {
       user: 'postgres',
-      password: '',
-      database: 'test'
+      password: 'password',
+      database: 'postgres'
     },
     dialect === 'mysql' && env.CI && {
       user: 'travis',
