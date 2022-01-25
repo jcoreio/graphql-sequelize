@@ -1,0 +1,35 @@
+version: 2
+jobs:
+  build:
+    docker:
+      - image: circleci/node:16
+      - image: circleci/postgres:10-alpine-ram
+        environment:
+          POSTGRES_PASSWORD: password
+
+    working_directory: ~/repo
+
+    steps:
+      - checkout
+
+      - run: yarn config set registry "https://registry.npmjs.org/"
+      - run: echo "//registry.npmjs.org/:_authToken=$NPM_TOKEN" > ~/.npmrc
+      - run: echo "registry=https://registry.npmjs.org/" >> ~/.npmrc
+
+      - run:
+          name: npm install
+          command: npm i --ignore-scripts
+      - run:
+          name: prepare database
+          command: |
+            psql -c "drop database if exists test;" -U postgres
+            psql -c "create database test;" -U postgres
+      - run:
+          name: test
+          command: npm run test:unit && npm run test:integration
+      - run:
+          name: build
+          command: npm run build
+      - run:
+          name: release
+          command: npm run semantic-release
