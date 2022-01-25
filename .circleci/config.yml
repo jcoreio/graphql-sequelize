@@ -3,6 +3,8 @@ jobs:
   build:
     docker:
       - image: circleci/node:16
+        environment: 
+          POSTGRES_ENV_POSTGRES_DATABASE: postgres
       - image: circleci/postgres:10-alpine-ram
         environment:
           POSTGRES_PASSWORD: password
@@ -19,11 +21,6 @@ jobs:
       - run:
           name: npm install
           command: npm i --ignore-scripts
-      - run:
-          name: prepare database
-          command: |
-            psql -c "drop database if exists test;" -U postgres
-            psql -c "create database test;" -U postgres
       - run:
           name: test
           command: npm run test:unit && npm run test:integration
