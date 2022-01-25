@@ -129,7 +129,7 @@ describe('replaceWhereOperators', () => {
       after = {
         prop1: {[Sequelize.Op.gt]: 12},
         prop2: {[Sequelize.Op.or]: [{[Sequelize.Op.eq]: 3}, {[Sequelize.Op.eq]: 4}]}
-      }
+      };
     }
     expect(replaceWhereOperators(proxify(before))).to.deep.equal(after);
   });

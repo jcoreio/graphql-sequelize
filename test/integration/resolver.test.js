@@ -335,7 +335,7 @@ describe('resolver', function () {
   });
   afterEach(function () {
     this.sandbox.restore();
-  })
+  });
 
   it('should resolve a plain result with a single model', function () {
     var user = this.userB;
@@ -1170,10 +1170,10 @@ describe('resolver', function () {
 
       expect(result.data.users[0].id).to.equal(2);
       expect(result.data.users.length).to.equal(1);
-      });
+    });
   });
 
-  it('should allow list queries set as NonNullable', function () { 
+  it('should allow list queries set as NonNullable', function () {
     var user = this.userA
       , schema;
 
@@ -1202,12 +1202,12 @@ describe('resolver', function () {
         }
       }
     `, null, {
-        name: user.name
-      }).then(function (result) {
-        if (result.errors) throw new Error(result.errors[0].stack);
+      name: user.name
+    }).then(function (result) {
+      if (result.errors) throw new Error(result.errors[0].stack);
 
-        expect(result.data.users).to.have.length(1);
-        expect(result.data.users[0].name).to.equal(user.name);
-      });
+      expect(result.data.users).to.have.length(1);
+      expect(result.data.users[0].name).to.equal(user.name);
+    });
   });
 });

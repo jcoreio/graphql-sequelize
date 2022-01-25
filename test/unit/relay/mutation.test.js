@@ -4,7 +4,7 @@ import {expect} from 'chai';
 import Sequelize from 'sequelize';
 import sinon from 'sinon';
 import attributeFields from '../../../src/attributeFields';
-import { sequelize } from '../../support/helper'
+import { sequelize } from '../../support/helper';
 
 import {
   sequelizeConnection

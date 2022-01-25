@@ -2,7 +2,7 @@ version: 2
 jobs:
   build:
     docker:
-      - image: circleci/node:16
+      - image: circleci/node:14
         environment: 
           POSTGRES_ENV_POSTGRES_DATABASE: postgres
       - image: circleci/postgres:10-alpine-ram

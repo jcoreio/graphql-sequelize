@@ -1,13 +1,14 @@
-import { describe, it } from 'mocha'
-import { makeExecutableSchema } from 'graphql-tools'
-import { graphql } from 'graphql'
-import getSelection from '../../src/getSelection'
+'use strict';
+import { describe, it } from 'mocha';
+import { makeExecutableSchema } from 'graphql-tools';
+import { graphql } from 'graphql';
+import getSelection from '../../src/getSelection';
 
-import { expect } from 'chai'
+import { expect } from 'chai';
 
 describe(`getSelection`, function () {
   it(`works`, async function () {
-    let selection = null
+    let selection = null;
 
     const schema = makeExecutableSchema({
       typeDefs: `
@@ -43,27 +44,28 @@ describe(`getSelection`, function () {
             context,
             info
           ) => {
-            const { fieldNodes, fieldName, fragments } = info
-            const node = fieldNodes.find((n) => n.name && n.name.value === fieldName)
+            const { fieldNodes, fieldName, fragments } = info;
+            const node = fieldNodes.find((n) => n.name && n.name.value === fieldName);
             selection =
               args.selection && node
                 ? getSelection({ node, selection: args.selection, fragments })
-                : null
+                : null;
           },
         },
       },
-    })
+    });
 
     async function selectionFor(
       requestString
     ) {
-      const result = await graphql({schema, source: requestString})
-      if (result.errors) throw new Error(JSON.stringify(result.errors))
-      return selection
+      debugger;
+      const result = await graphql({schema, source: requestString});
+      if (result.errors) throw new Error(JSON.stringify(result.errors));
+      return selection;
     }
 
     const expectSelectionFor = (requestString) =>
-      expect(selectionFor(requestString), `selection for ${requestString}`)
+      expect(selectionFor(requestString), `selection for ${requestString}`);
 
     await expectSelectionFor(`{
       ConnectionChannelPage(
@@ -73,7 +75,7 @@ describe(`getSelection`, function () {
           hasNextPage
         }
       }
-    }`).to.eventually.exist
+    }`).to.eventually.exist;
 
     await expectSelectionFor(`{
       ConnectionChannelPage(
@@ -85,7 +87,7 @@ describe(`getSelection`, function () {
           }
         }
       }
-    }`).to.eventually.exist
+    }`).to.eventually.exist;
 
     await expectSelectionFor(`
       fragment B on PageInfo {
@@ -107,7 +109,7 @@ describe(`getSelection`, function () {
           ...A
         }
       }
-    `).to.eventually.exist
+    `).to.eventually.exist;
 
     await expectSelectionFor(`
       fragment B on PageInfo {
@@ -129,7 +131,7 @@ describe(`getSelection`, function () {
           ...A
         }
       }
-    `).to.eventually.exist
+    `).to.eventually.exist;
 
     await expectSelectionFor(`
       fragment B on PageInfo {
@@ -151,7 +153,7 @@ describe(`getSelection`, function () {
           ...A
         }
       }
-    `).to.eventually.not.exist
+    `).to.eventually.not.exist;
 
     await expectSelectionFor(`{
       ConnectionChannelPage(
@@ -161,7 +163,7 @@ describe(`getSelection`, function () {
           hasNextPage
         }
       }
-    }`).to.eventually.not.exist
+    }`).to.eventually.not.exist;
 
     await expectSelectionFor(`{
       ConnectionChannelPage(
@@ -173,7 +175,7 @@ describe(`getSelection`, function () {
           }
         }
       }
-    }`).to.eventually.not.exist
+    }`).to.eventually.not.exist;
 
     await expectSelectionFor(`{
       ConnectionChannelPage(
@@ -183,7 +185,7 @@ describe(`getSelection`, function () {
           cursor
         }
       }
-    }`).to.eventually.not.exist
+    }`).to.eventually.not.exist;
 
     await expectSelectionFor(`{
       ConnectionChannelPage(
@@ -193,6 +195,6 @@ describe(`getSelection`, function () {
           cursor
         }
       }
-    }`).to.eventually.exist
-  })
-})
+    }`).to.eventually.exist;
+  });
+});
