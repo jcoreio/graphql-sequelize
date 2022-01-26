@@ -74,7 +74,7 @@
     "mysql": "^2.11.1",
     "pg": "^8.7.1",
     "pg-hstore": "^2.3.2",
-    "semantic-release": "^15.12.2",
+    "semantic-release": "^19.0.2",
     "sequelize": "^4.44.4",
     "sinon": "^1.15.4",
     "sinon-as-promised": "^4.0.0",
