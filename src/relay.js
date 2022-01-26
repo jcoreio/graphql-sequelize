@@ -8,7 +8,7 @@ import {
 import { GraphQLList } from 'graphql'
 import { base64, unbase64 } from './base64.js'
 import _ from 'lodash'
-import { Model } from 'sequelize'
+import Sequelize, { Model } from 'sequelize'
 import defaultResolver from './resolver'
 import Op from './sequelizeOps'
 import getSelection from './getSelection'
@@ -133,16 +133,45 @@ function reverseOrder(order) {
   ])
 }
 
+const dateToCursor = (date) => (date ? date.getTime() : null)
+const dateFromCursor = (time) => (time !== null ? new Date(time) : null)
+
 /**
  * Creates a cursor given a node returned from the Database
- * @param  {Object}   node            sequelize model instance
- * @param  {String[]} orderAttributes  the attributes pertaining in ordering
- * @return {String}                   The Base64 encoded cursor string
+ * @param  {Object}   node                  sequelize model instance
+ * @param  {Object}   info                  the GraphQLResolveInfo with additional properties
+ * @param  {String[]} info.orderAttributes  the attributes pertaining in ordering
+ * @return {String}                         The Base64 encoded cursor string
  */
-function toCursor(node, info) {
+export function defaultToCursor(node, info) {
   return base64(
-    JSON.stringify(info.orderAttributes.map((attr) => node.get(attr)))
+    JSON.stringify(
+      info.orderAttributes.map((attr) =>
+        info.model.rawAttributes[attr].type instanceof Sequelize.DATE
+          ? dateToCursor(node.get(attr))
+          : node.get(attr)
+      )
+    )
   )
+}
+
+/**
+ * Decode a cursor into its component parts
+ * @param  {String}   cursor Base64 encoded cursor
+ * @param  {Object}   info                  the GraphQLResolveInfo with additional properties
+ * @param  {String[]} info.orderAttributes  the attributes pertaining in ordering
+ * @return {any[]}    array containing values of attributes pertaining to ordering
+ */
+export function defaultFromCursor(cursor, info) {
+  // eslint-disable-line no-unused-vars
+  const result = JSON.parse(unbase64(cursor))
+  for (let i = 0; i < result.length; i++) {
+    const attr = info.model.rawAttributes[info.orderAttributes[i]]
+    if (attr && attr.type instanceof Sequelize.DATE) {
+      result[i] = dateFromCursor(result[i])
+    }
+  }
+  return result
 }
 
 /**
@@ -159,15 +188,6 @@ function toOffsetCursor(node, index) {
       ? node.get(primaryKeyAttribute)
       : null
   return base64(JSON.stringify([id, index]))
-}
-
-/**
- * Decode a cursor into its component parts
- * @param  {String} cursor Base64 encoded cursor
- * @return {any[]}         array containing values of attributes pertaining to ordering
- */
-function fromCursor(cursor) {
-  return JSON.parse(unbase64(cursor))
 }
 
 const dialectsThatSupportTupleComparison = {
@@ -195,59 +215,6 @@ function tupleComparison(model, attributes, inequality, values) {
   return sequelize.literal(`(${attributesStr}) ${inequality} (${valuesStr})`)
 }
 
-function getWindow({ model, cursor, order, inclusive }) {
-  const values = fromCursor(cursor)
-  order.forEach(([orderAttribute], index) => {
-    if (
-      model.rawAttributes[orderAttribute].type instanceof
-      model.sequelize.constructor.DATE
-    ) {
-      values[index] = new Date(values[index])
-    }
-  })
-
-  const { sequelize } = model
-  const allAscending = _.every(order, (item) => item[1].indexOf('ASC') >= 0)
-  const allDescending = _.every(order, (item) => item[1].indexOf('DESC') >= 0)
-
-  if (
-    (allAscending || allDescending) &&
-    dialectsThatSupportTupleComparison[sequelize.getDialect()]
-  ) {
-    let inequality = allAscending ? '>' : '<'
-    if (inclusive) inequality += '='
-    const attributes = order.map(([attribute]) => attribute)
-    return tupleComparison(model, attributes, inequality, values)
-  }
-
-  // given ORDER BY A ASC, B DESC, C ASC, the following code would create this logic:
-  // A > cursorValues[A] OR
-  // (A = cursorValues[A] AND (
-  //   B < cursorValues[B] OR (
-  //     B = cursorValues[B] AND C > cursorValues[C]
-  //   )
-  // )
-
-  function buildInequality(index) {
-    const [attr, direction] = order[index]
-    const value = values[index]
-    let inequality = direction.indexOf('ASC') >= 0 ? Op.gt : Op.lt
-    if (index === order.length - 1) {
-      if (inclusive)
-        inequality = direction.indexOf('ASC') >= 0 ? Op.gte : Op.lte
-      return { [attr]: { [inequality]: value } }
-    }
-    return {
-      [Op.or]: [
-        { [attr]: { [inequality]: value } },
-        { [attr]: value, ...buildInequality(index + 1) },
-      ],
-    }
-  }
-
-  return buildInequality(0)
-}
-
 export function createConnectionResolver({
   target: targetMaybeThunk,
   before,
@@ -258,6 +225,8 @@ export function createConnectionResolver({
   resolver: baseResolver = defaultResolver,
   afterNodes,
   resolveNodes,
+  toCursor = defaultToCursor,
+  fromCursor = defaultFromCursor,
 }) {
   before = before || ((options) => options)
   after = after || ((result) => result)
@@ -273,6 +242,59 @@ export function createConnectionResolver({
     })
 
     return result
+  }
+
+  function getWindow({ model, cursor, order, info, inclusive }) {
+    const values = fromCursor(cursor, info)
+    order.forEach(([orderAttribute], index) => {
+      if (
+        model.rawAttributes[orderAttribute].type instanceof
+        model.sequelize.constructor.DATE
+      ) {
+        values[index] = new Date(values[index])
+      }
+    })
+
+    const { sequelize } = model
+    const allAscending = _.every(order, (item) => item[1].indexOf('ASC') >= 0)
+    const allDescending = _.every(order, (item) => item[1].indexOf('DESC') >= 0)
+
+    if (
+      (allAscending || allDescending) &&
+      dialectsThatSupportTupleComparison[sequelize.getDialect()]
+    ) {
+      let inequality = allAscending ? '>' : '<'
+      if (inclusive) inequality += '='
+      const attributes = order.map(([attribute]) => attribute)
+      return tupleComparison(model, attributes, inequality, values)
+    }
+
+    // given ORDER BY A ASC, B DESC, C ASC, the following code would create this logic:
+    // A > cursorValues[A] OR
+    // (A = cursorValues[A] AND (
+    //   B < cursorValues[B] OR (
+    //     B = cursorValues[B] AND C > cursorValues[C]
+    //   )
+    // )
+
+    function buildInequality(index) {
+      const [attr, direction] = order[index]
+      const value = values[index]
+      let inequality = direction.indexOf('ASC') >= 0 ? Op.gt : Op.lt
+      if (index === order.length - 1) {
+        if (inclusive)
+          inequality = direction.indexOf('ASC') >= 0 ? Op.gte : Op.lte
+        return { [attr]: { [inequality]: value } }
+      }
+      return {
+        [Op.or]: [
+          { [attr]: { [inequality]: value } },
+          { [attr]: value, ...buildInequality(index + 1) },
+        ],
+      }
+    }
+
+    return buildInequality(0)
   }
 
   const resolveEdge = function (
@@ -386,7 +408,12 @@ export function createConnectionResolver({
     let queriedCursor = null
 
     if (args.after || args.before) {
-      queriedCursor = fromCursor(args.after || args.before)
+      queriedCursor = fromCursor(args.after || args.before, {
+        ...info,
+        model,
+        order,
+        orderAttributes,
+      })
     }
 
     let offset, queriedOffset
@@ -399,25 +426,6 @@ export function createConnectionResolver({
       if (queriedCursor) {
         const startIndex = Number(queriedCursor[1])
         if (startIndex >= 0) offset = queriedOffset = startIndex + 1
-      }
-    } else {
-      if (args.before) {
-        $and.push(
-          getWindow({
-            model,
-            cursor: args.before,
-            order: reverseOrder(order),
-          })
-        )
-      }
-      if (args.after) {
-        $and.push(
-          getWindow({
-            model,
-            cursor: args.after,
-            order,
-          })
-        )
       }
     }
     if (startOnly) {
@@ -433,6 +441,7 @@ export function createConnectionResolver({
 
     const extendedInfo = {
       ...info,
+      model,
       order,
       orderAttributes,
       mustUseOffset,
@@ -442,6 +451,28 @@ export function createConnectionResolver({
         limit,
         offset, // may be null
       },
+    }
+    if (!mustUseOffset) {
+      if (args.before) {
+        $and.push(
+          getWindow({
+            model,
+            cursor: args.before,
+            order: reverseOrder(order),
+            info: extendedInfo,
+          })
+        )
+      }
+      if (args.after) {
+        $and.push(
+          getWindow({
+            model,
+            cursor: args.after,
+            order,
+            info: extendedInfo,
+          })
+        )
+      }
     }
     const nodesPromise = resolveNodes(source, args, context, extendedInfo)
 
@@ -457,8 +488,9 @@ export function createConnectionResolver({
         getWindow({
           model,
           cursor,
-          order,
           inclusive: true,
+          order,
+          info: extendedInfo,
         })
       )
       const otherNodes = await resolveNodes(source, args, context, {
