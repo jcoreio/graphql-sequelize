@@ -5,19 +5,13 @@ import {
   connectionDefinitions,
   connectionArgs,
 } from 'graphql-relay'
-
 import { GraphQLList } from 'graphql'
-
 import { base64, unbase64 } from './base64.js'
-
 import _ from 'lodash'
-import simplifyAST from './simplifyAST'
-
 import { Model } from 'sequelize'
-
 import defaultResolver from './resolver'
-
 import Op from './sequelizeOps'
+import getSelection from './getSelection'
 
 function getModelOfInstance(instance) {
   return instance instanceof Model ? instance.constructor : instance.Model
@@ -341,7 +335,10 @@ export function createConnectionResolver({
     if (last < 0) throw new Error('last must be >= 0 if given')
 
     const fieldNodes = info.fieldASTs || info.fieldNodes
-    const ast = simplifyAST(fieldNodes[0], info)
+    const { fieldName, fragments } = info
+    const fieldNode = fieldNodes.find(
+      (n) => n.name && n.name.value === fieldName
+    )
 
     const target =
         typeof targetMaybeThunk === 'function' &&
@@ -371,29 +368,15 @@ export function createConnectionResolver({
     let limit
     if (first || last) limit = Math.min(first || Infinity, last || Infinity) + 1
 
-    const edgesRequested = _.has(ast, ['fields', 'edges'])
-    const startCursorRequested = _.has(ast, [
-      'fields',
+    const hasSelection = (selection) =>
+      Boolean(getSelection({ node: fieldNode, selection, fragments }))
+
+    const edgesRequested = hasSelection(['edges'])
+    const startCursorRequested = hasSelection(['pageInfo', 'startCursor'])
+    const endCursorRequested = hasSelection(['pageInfo', 'endCursor'])
+    const hasNextPageRequested = hasSelection(['pageInfo', 'hasNextPage'])
+    const hasPreviousPageRequested = hasSelection([
       'pageInfo',
-      'fields',
-      'startCursor',
-    ])
-    const endCursorRequested = _.has(ast, [
-      'fields',
-      'pageInfo',
-      'fields',
-      'endCursor',
-    ])
-    const hasNextPageRequested = _.has(ast, [
-      'fields',
-      'pageInfo',
-      'fields',
-      'hasNextPage',
-    ])
-    const hasPreviousPageRequested = _.has(ast, [
-      'fields',
-      'pageInfo',
-      'fields',
       'hasPreviousPage',
     ])
 

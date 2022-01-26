@@ -10,12 +10,13 @@ export function createSequelize(options = {}) {
     {},
     dialect === 'postgres' && {
       host: env.POSTGRES_PORT_5432_TCP_ADDR,
+      port: parseInt(env.POSTGRES_ENV_POSTGRES_PORT) || (env.CI ? 5432 : 9472),
       user: env.POSTGRES_ENV_POSTGRES_USER,
       password: env.POSTGRES_ENV_POSTGRES_PASSWORD,
       database: env.POSTGRES_ENV_POSTGRES_DATABASE,
     },
     dialect === 'mysql' && {
-      port: 3306,
+      port: parseInt(env.MYSQL_ENV_MYSQL_PORT) || (env.CI ? 3306 : 7476),
       host: env.MYSQL_PORT_3306_TCP_ADDR,
       user: env.MYSQL_ENV_MYSQL_USER,
       password: env.MYSQL_ENV_MYSQL_PASSWORD,
@@ -41,8 +42,12 @@ export function createSequelize(options = {}) {
     }
   )
 
+  // eslint-disable-next-line no-console
+  console.log(config)
+
   return new Sequelize(config.database, config.user, config.password, {
     host: config.host,
+    port: config.port,
     dialect,
     logging: false,
     ...options,
