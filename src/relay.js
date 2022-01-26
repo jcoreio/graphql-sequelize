@@ -19,7 +19,7 @@ import {
 import _ from 'lodash';
 import getSelection from './getSelection';
 
-import {Model} from 'sequelize';
+import Sequelize, {Model} from 'sequelize';
 
 function getModelOfInstance(instance) {
   return instance instanceof Model ? instance.constructor : instance.Model;
@@ -140,6 +140,9 @@ function reverseOrder(order) {
   return order.map(([orderAttr, orderDirection]) => [orderAttr, reverseDirection(orderDirection)]);
 }
 
+const dateToCursor = date => date ? date.getTime() : null;
+const dateFromCursor = time => time !== null ? new Date(time) : null;
+
 /**
  * Creates a cursor given a node returned from the Database
  * @param  {Object}   node                  sequelize model instance
@@ -148,7 +151,11 @@ function reverseOrder(order) {
  * @return {String}                         The Base64 encoded cursor string
  */
 export function defaultToCursor(node, info) {
-  return base64(JSON.stringify(info.orderAttributes.map(attr => node.get(attr))));
+  return base64(JSON.stringify(info.orderAttributes.map(attr =>
+    info.model.attributes[attr].type instanceof Sequelize.DATE
+      ? dateToCursor(node.get(attr))
+      : node.get(attr)
+  )));
 }
 
 /**
@@ -159,7 +166,14 @@ export function defaultToCursor(node, info) {
  * @return {any[]}    array containing values of attributes pertaining to ordering
  */
 export function defaultFromCursor(cursor, info) { // eslint-disable-line no-unused-vars
-  return JSON.parse(unbase64(cursor));
+  const result = JSON.parse(unbase64(cursor));
+  for (let i = 0; i < result.length; i++) {
+    const attr = info.model.attributes[info.orderAttributes[i]];
+    if (attr && attr.type instanceof Sequelize.DATE) {
+      result[i] = dateFromCursor(result[i]);
+    }
+  }
+  return result;
 }
 
 /**
@@ -349,6 +363,7 @@ export function createConnectionResolver({
     if (args.after || args.before) {
       queriedCursor = fromCursor(args.after || args.before, {
         ...info,
+        model,
         order,
         orderAttributes,
       });
@@ -376,6 +391,7 @@ export function createConnectionResolver({
 
     const extendedInfo = {
       ...info,
+      model,
       order,
       orderAttributes,
       mustUseOffset,
