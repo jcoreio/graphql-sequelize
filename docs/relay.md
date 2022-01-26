@@ -3,7 +3,7 @@
 ## node lookups
 
 relay will perform certain queries on a root "node" type.
-graphql-sequelize will automatically map these node lookups to findById calls.
+graphql-sequelize will automatically map these node lookups to findByPk calls.
 
 If you wish to use non-sequelize entities, or if you want to override the default
 behaviour for sequelize models, you can specify a resolve function.

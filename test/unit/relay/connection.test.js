@@ -81,7 +81,7 @@ describe('relay', function () {
       const task = this.Task.build();
       task.dataValues.full_count = Math.random() * 999;
       this.sinon.stub(this.Task, 'findAll').resolves([task]);
-      this.sinon.stub(this.User, 'findById').resolves(this.User.build());
+      this.sinon.stub(this.User, 'findByPk').resolves(this.User.build());
     });
 
     afterEach(function () {
