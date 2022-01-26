@@ -23,7 +23,7 @@
     "travis-deploy-once": "travis-deploy-once"
   },
   "release": {
-    "branch": "jcoreio"
+    "branches": ["jcoreio"]
   },
   "repository": {
     "type": "git",
